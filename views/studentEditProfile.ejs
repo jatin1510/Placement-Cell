@@ -99,7 +99,7 @@
           <tr>
             <td>Date Of Birth</td>
             <td>:</td>
-            <td><input type="date" name="dob" value="<%= student.dob %>" placeholder="<%= new Date(student.dob).toDateString() %>"></td>
+            <td><input type="date" name="dob" value="<%= new Date(student.dob).toISOString().substring(0, 10) %>" placeholder="<%= new Date(student.dob).toDateString() %>"></td>
           </tr>
           <tr>
             <td>Gender</td>
@@ -109,12 +109,12 @@
           <tr>
             <td>Mobile Number</td>
             <td>:</td>
-            <td> <input type="tel" name="mobileNumber" value="<%= student.mobileNumber %>" pattern="[1-9]{5}-[0-9]{5}" placeholder="Enter your Mobile Nnumber"> </td>
+            <td> <input type="tel" name="mobileNumber" value="<%= student.mobileNumber %>" pattern="[1-9]{1}[0-9]{4}-[0-9]{5}" placeholder="Enter your Mobile Nnumber"> </td>
           </tr>
           <tr>
             <td>Alternative Mobile Number</td>
             <td>:</td>
-            <td> <input type="tel" name="alternateMobileNumber" value="<%= student.alternateMobileNumber %>" pattern="[1-9]{5}-[0-9]{5}" placeholder="Enter your Mobile Nnumber"> </td>
+            <td> <input type="tel" name="alternateMobileNumber" value="<%= student.alternateMobileNumber %>" pattern="[1-9]{1}[0-9]{4}-[0-9]{5}" placeholder="Enter your Mobile Nnumber"> </td>
           </tr>
           <tr>
             <td>10th Percentage</td>

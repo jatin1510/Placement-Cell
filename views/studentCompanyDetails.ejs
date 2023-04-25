@@ -3,7 +3,7 @@
     <html lang="en">
 
     <head>
-        <title>Filter Company</title>
+        <title>Company Details</title>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
@@ -167,9 +167,21 @@
                                         <% const date2 = new Date(jobs[i].endDate.getTime() + jobs[i].endDate.getTimezoneOffset() * 60000) %>
                                         
                                         <% if( date1.getTime() <= curDate.getTime() && curDate.getTime()  <= date2.getTime() && user.isPlaced == false) {%>
-                                            <a href="/registerStudentInJob/<%= jobs[i]._id %>">
-                                                <button  style="background: green; width: 108px;" type="button " class="btn btn-primary">Register</button>
-                                            </a>
+                                            <% let flag = false %>
+                                            <% for(let j = 0; j < jobs[i].ugCriteria.length; j++){ %>
+                                                <% if(user.branch === jobs[i].ugCriteria[j]) {%>
+                                                    <% flag = true; %>
+                                                <% }%>
+                                            <% } %>
+                                            <% if(flag) {%>
+                                                <a href="/registerStudentInJob/<%= jobs[i]._id %>">
+                                                    <button  style="background: green; width: 108px;" type="button " class="btn btn-primary">Register</button>
+                                                </a>
+                                            <% }else{%>
+                                                <a class="disabled">
+                                                    <button style="background: orange;width: 108px;" type="button" disabled class="btn btn-primary">Register</button>
+                                                </a>
+                                            <% }%>
                                         <% } else { %>
                                             <a class="disabled">
                                                 <button style="background: orange;width: 108px;" type="button" disabled class="btn btn-primary">Register</button>
