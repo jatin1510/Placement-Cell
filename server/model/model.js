@@ -51,10 +51,10 @@ const jobSchema = new Schema({
     cpiCriteria: { type: Number, require: true },
     ctc: { type: mongoose.Number, require: true },
     description: { type: String, require: true },
-    startDate: { type: Date, default: new Date() },
-    endDate: { type: Date, default: new Date() },
+    startDate: { type: Date, default: new Date(0, 0, 0, 0, 0, 0, 0) },
+    endDate: { type: Date, default: new Date(0, 0, 0, 0, 0, 0, 0) },
     isVerified: { type: Boolean, default: false },
-    isRejected: {type: Boolean, default: false},
+    isRejected: { type: Boolean, default: false },
 });
 
 const studentsRegistredSchema = new Schema({

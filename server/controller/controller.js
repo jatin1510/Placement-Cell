@@ -532,7 +532,7 @@ exports.updateStudent = async (req, res) =>
             .status(500)
             .render('error', { message: 'Role not matched' });
         return;
-    }
+    }   
 
     const old = req.body.password;
 

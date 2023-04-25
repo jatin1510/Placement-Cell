@@ -144,7 +144,22 @@
           <tr>
             <td>Branch</td>
             <td>:</td>
-            <td> <input name="branch" type="text" value="<%= student.branch %>" placeholder="Enter Total Backlogs"> </td>
+            <td> 
+              <!-- <input name="branch" type="text" value="<%= student.branch %>" placeholder="Enter Total Backlogs">  -->
+                        <select name="branch" id="role">
+                            <option <% if(student.branch === "B.Tech") { %>
+                              selected
+                              <% } %>
+                               value="B.Tech">B.Tech</option>
+                            <option <% if(student.branch === "M.Tech") { %>
+                              selected
+                              <% } %>
+                            value="M.Tech">M.Tech </option>
+                            <option <% if(student.branch === "M.Sc") { %>
+                              selected
+                              <% } %> value="MSc">MSc</option>
+                        </select>
+            </td>
           </tr>
           <tr>
             <td>Resume</td>
