@@ -7,6 +7,9 @@
     "start": "nodemon server.js",
     "test": "mocha test/login.js"
   },
+  "engines": {
+    "node": ">=16 <17"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
