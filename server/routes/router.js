@@ -19,6 +19,9 @@ route.get('/viewCompany', authorization, controller.viewCompany);
 
 // update password
 route.get('/updatePassword', authorization, controller.updatePassword);
+route.post('/studentUpdatePassword', authorization, controller.studentUpdatePassword);
+route.post('/companyUpdatePassword', authorization, controller.companyUpdatePassword);
+route.post('/adminUpdatePassword', authorization, controller.adminUpdatePassword);
 
 /**
   * @description Register Routes
@@ -41,6 +44,8 @@ route.get('/profile', authorization, controller.alreadyLoggedIn);
   * @method GET /
   */
 route.get('/update', authorization, controller.updateUser);
+route.get('/updateResume', authorization, controller.updateResumeHelper);
+
 
 /**
   * @description Update in the database

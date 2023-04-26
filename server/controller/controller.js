@@ -37,7 +37,7 @@ exports.findPerson = async (req, res) =>
     const role = req.body.role;
     const password = req.body.password;
 
-    console.log(email, role, password);
+    // console.log(email, role, password);
     if (role == "Student") {
         await student.find({ email: email })
             .then((data) =>
@@ -87,7 +87,6 @@ exports.findPerson = async (req, res) =>
                     const token = generateToken(data[0]._id, email, role);
                     // console.log(token); 
                     res.cookie("jwt", token, { maxAge: cookie_expires_in, httpOnly: true });
-                    // res.render('companyProfile', { company: data[0] });
                     res.redirect('/profile');
                 }
             })
@@ -283,21 +282,14 @@ exports.registerStudent = async (req, res) =>
         return;
     }
 
-    if (req.body.confirmPassword !== req.body.newPassword || req.body.confirmPassword !== req.body.password) {
-        // make new webpage for any type for error
-        res
-            .status(400)
-            .render('error', { message: "Confirm Password doesn't matched" });
-        return;
-    }
-
+    // console.log(req.body);
     await bcrypt.hash(req.body.password, saltRounds)
         .then((hashedPassword) =>
         {
             // new student
             const user = new student({
                 email: req.body.email,
-                password: bcrypt.hashSync(req.body.password, saltRounds),
+                password: hashedPassword,
                 firstName: req.body.firstName,
                 middleName: req.body.middleName,
                 lastName: req.body.lastName,
@@ -322,6 +314,7 @@ exports.registerStudent = async (req, res) =>
                     const token = generateToken(data._id, user.email, "Student");
                     res.cookie("jwt", token, { maxAge: cookie_expires_in, httpOnly: true });
                     res.redirect('/profile');
+                    // res.send(data);
                 })
                 .catch(err =>
                 {
@@ -351,8 +344,7 @@ exports.registerCompany = async (req, res) =>
         return;
     }
 
-
-    if (req.body.confirmPassword !== req.body.newPassword || req.body.confirmPassword !== req.body.password) {
+    if (req.body.confirmPassword !== req.body.password) {
         // make new webpage for any type for error
         res
             .status(400)
@@ -413,13 +405,13 @@ exports.registerAdmin = async (req, res) =>
     }
 
 
-    // if (req.body.confirmPassword !== req.body.newPassword || req.body.confirmPassword !== req.body.password) {
-    //     // make new webpage for any type for error
-    //     res
-    //         .status(400)
-    //         .render('error', { message: "Confirm Password doesn't matched" });
-    //     return;
-    // }
+    if (req.body.confirmPassword !== req.body.password) {
+        // make new webpage for any type for error
+        res
+            .status(400)
+            .render('error', { message: "Confirm Password doesn't matched" });
+        return;
+    }
 
     await bcrypt.hash(req.body.password, saltRounds)
         .then((hashedPassword) =>
@@ -552,60 +544,6 @@ exports.updateStudent = async (req, res) =>
         return;
     }
 
-    const old = req.body.password;
-
-    if (req.body.password) {
-        // console.log(req.body.password, req.body.newPassword, req.body.newConfirmPassword);
-
-        await student.findById(id)
-            .then(async (data) =>
-            {
-                if (!data) {
-                    res
-                        .status(404)
-                        .render('error', { message: `Not found user with id: ${email} ` });
-                    return;
-                } else {
-                    if (req.body.newPassword !== req.body.newConfirmPassword) {
-                        res
-                            .status(500)
-                            .render('error', { message: `New Password and Confirm Password Not matched` });
-                        return;
-                    }
-                    if (!bcrypt.compareSync(req.body.password, data.password)) {
-                        res
-                            .status(500)
-                            .render('error', { message: `Old Password InCorrect` });
-                        return;
-                    }
-                    // console.log("password matched");
-                    await bcrypt.hash(req.body.newPassword, saltRounds)
-                        .then((hashedPassword) =>
-                        {
-                            req.body.password = hashedPassword;
-                        })
-                        .catch(err =>
-                        {
-                            res
-                                .status(500)
-                                .render('error', { message: `Internal Server Error! Please try again` });
-                            return;
-                        })
-                }
-            })
-            .catch((err) =>
-            {
-                res
-                    .status(500)
-                    .render('error', { message: `Error retrieving user with email ${email}` });
-                return;
-            });
-    }
-
-    if (req.body.password && req.body.password == old) {
-        return;
-    }
-
     const stored = req.body;
     // console.log(stored);
     await student.findByIdAndUpdate(id, stored, { useFindAndModify: false })
@@ -644,58 +582,6 @@ exports.updateCompany = async (req, res) =>
             .render('error', { message: 'Role not matched' });
         return;
     }
-    const old = req.body.password;
-
-    if (req.body.password) {
-        console.log(req.body.password, req.body.newPassword, req.body.newConfirmPassword);
-
-        await company.findById(id)
-            .then(async (data) =>
-            {
-                if (!data) {
-                    res
-                        .status(404)
-                        .render('error', { message: `Not found user with id: ${email} ` });
-                    return;
-                } else {
-                    if (req.body.newPassword !== req.body.newConfirmPassword) {
-                        res
-                            .status(500)
-                            .render('error', { message: `New Password and Confirm Password Not matched` });
-                    }
-                    if (!bcrypt.compareSync(req.body.password, data.password)) {
-                        res
-                            .status(500)
-                            .render('error', { message: `Old Password InCorrect` });
-                        return;
-                    }
-                    // console.log("password matched");
-                    await bcrypt.hash(req.body.newPassword, saltRounds)
-                        .then((hashedPassword) =>
-                        {
-                            req.body.password = hashedPassword;
-                        })
-                        .catch(err =>
-                        {
-                            res
-                                .status(500)
-                                .render('error', { message: `Internal Server Error! Please try again` });
-                            return;
-                        })
-                }
-            })
-            .catch((err) =>
-            {
-                res
-                    .status(500)
-                    .render('error', { message: `Error retrieving user with email ${email}` });
-                return;
-            });
-    }
-
-    if (req.body.password && req.body.password == old) {
-        return;
-    }
     const stored = req.body;
     await company.findByIdAndUpdate(id, stored, { useFindAndModify: false })
         .then((data) =>
@@ -727,64 +613,10 @@ exports.updateAdmin = async (req, res) =>
     const id = req.id;
     const role = req.role;
 
-    console.log(id, role);
     if (role !== "Placement Manager" && role !== "Admin") {
         res
             .status(500)
             .render('error', { message: 'Role not matched' });
-        return;
-    }
-
-    const old = req.body.password;
-
-    if (req.body.password) {
-        console.log(req.body.password, req.body.newPassword, req.body.newConfirmPassword);
-
-        await admin.findById(id)
-            .then(async (data) =>
-            {
-                if (!data) {
-                    res
-                        .status(404)
-                        .render('error', { message: `Not found user with id: ${email} ` });
-                    return;
-                } else {
-                    if (req.body.newPassword !== req.body.newConfirmPassword) {
-                        res
-                            .status(500)
-                            .render('error', { message: `New Password and Confirm Password Not matched` });
-                    }
-                    if (!bcrypt.compareSync(req.body.password, data.password)) {
-                        res
-                            .status(500)
-                            .render('error', { message: `Old Password InCorrect` });
-                        return;
-                    }
-                    // console.log("password matched");
-                    await bcrypt.hash(req.body.newPassword, saltRounds)
-                        .then((hashedPassword) =>
-                        {
-                            req.body.password = hashedPassword;
-                        })
-                        .catch(err =>
-                        {
-                            res
-                                .status(500)
-                                .render('error', { message: `Internal Server Error! Please try again` });
-                            return;
-                        })
-                }
-            })
-            .catch((err) =>
-            {
-                res
-                    .status(500)
-                    .render('error', { message: `Error retrieving user with email ${email}` });
-                return;
-            });
-    }
-
-    if (req.body.password && req.body.password == old) {
         return;
     }
 
@@ -811,9 +643,6 @@ exports.updatePassword = async (req, res) =>
     const role = req.role;
     const id = req.id;
 
-    // console.log("inside update password");
-    // console.log(email, role, id);
-
     if (role == "Student") {
         const stu = await student.findById(id);
         res.render('studentUpdatePassword', { student: stu });
@@ -830,6 +659,198 @@ exports.updatePassword = async (req, res) =>
     }
 }
 
+exports.studentUpdatePassword = async (req, res) =>
+{
+    const role = req.role;
+    if (role !== "Student") {
+        res.status(500).render('error', { message: 'Role not matched.' });
+        return;
+    }
+
+    // console.log(req.body);
+    const old = req.body.password;
+    const newP = req.body.newPassword;
+    const newCP = req.body.newConfirmPassword;
+
+    if (newP !== newCP) {
+        res.status(500).render('error', { message: 'Confirm Password not matched' });
+        return;
+    }
+
+    const id = req.id;
+
+    await student.findById(id)
+        .then(async (data) =>
+        {
+            if (!bcrypt.compareSync(old, data.password)) {
+                res
+                    .status(500)
+                    .render('error', { message: `Old Password InCorrect` });
+                return;
+            }
+
+            await bcrypt.hash(newP, saltRounds)
+                .then(async (hashedPassword) =>
+                {
+                    console.log(old);
+                    console.log(newP, hashedPassword);
+                    await student.findByIdAndUpdate(id, { password: hashedPassword })
+                        .then(async (data) =>
+                        {
+                            res.redirect('/profile');
+                        })
+                        .catch(async (err) =>
+                        {
+                            res
+                                .status(500)
+                                .render('error', { message: `Error occured while finding user` });
+                            return;
+                        })
+                })
+                .catch(err =>
+                {
+                    res
+                        .status(500)
+                        .render('error', { message: `Internal Server Error! Please try again` });
+                    return;
+                })
+        })
+        .catch(async (err) =>
+        {
+            res
+                .status(500)
+                .render('error', { message: `Error occured while finding user` });
+            return;
+        })
+
+
+}
+
+exports.companyUpdatePassword = async (req, res) =>
+{
+    const role = req.role;
+    if (role !== "Company") {
+        res.status(500).render('error', { message: 'Role not matched.' });
+        return;
+    }
+
+    console.log(req.body);
+    const old = req.body.password;
+    const newP = req.body.newPassword;
+    const newCP = req.body.newConfirmPassword;
+
+    if (newP !== newCP) {
+        res.status(500).render('error', { message: 'Confirm Password not matched' });
+        return;
+    }
+
+    const id = req.id;
+
+    await company.findById(id)
+        .then(async (data) =>
+        {
+            if (!bcrypt.compareSync(req.body.password, data.password)) {
+                res
+                    .status(500)
+                    .render('error', { message: `Old Password InCorrect` });
+                return;
+            }
+
+            await bcrypt.hash(req.body.newPassword, saltRounds)
+                .then(async (hashedPassword) =>
+                {
+                    await company.findByIdAndUpdate(id, { password: hashedPassword })
+                        .then(async (data) =>
+                        {
+                            res.redirect('/profile');
+                        })
+                        .catch(async (err) =>
+                        {
+                            res
+                                .status(500)
+                                .render('error', { message: `Error occured while finding user` });
+                            return;
+                        })
+                })
+                .catch(err =>
+                {
+                    res
+                        .status(500)
+                        .render('error', { message: `Internal Server Error! Please try again` });
+                    return;
+                })
+        })
+        .catch(async (err) =>
+        {
+            res
+                .status(500)
+                .render('error', { message: `Error occured while finding user` });
+            return;
+        })
+}
+
+exports.adminUpdatePassword = async (req, res) =>
+{
+    const role = req.role;
+    if (role !== "Admin" && role !== "Placement Manager") {
+        res.status(500).render('error', { message: 'Role not matched.' });
+        return;
+    }
+
+    console.log(req.body);
+    const old = req.body.password;
+    const newP = req.body.newPassword;
+    const newCP = req.body.newConfirmPassword;
+
+    if (newP !== newCP) {
+        res.status(500).render('error', { message: 'Confirm Password not matched' });
+        return;
+    }
+
+    const id = req.id;
+
+    await admin.findById(id)
+        .then(async (data) =>
+        {
+            if (!bcrypt.compareSync(req.body.password, data.password)) {
+                res
+                    .status(500)
+                    .render('error', { message: `Old Password InCorrect` });
+                return;
+            }
+
+            await bcrypt.hash(req.body.newPassword, saltRounds)
+                .then(async (hashedPassword) =>
+                {
+                    await admin.findByIdAndUpdate(id, { password: hashedPassword })
+                        .then(async (data) =>
+                        {
+                            res.redirect('/profile');
+                        })
+                        .catch(async (err) =>
+                        {
+                            res
+                                .status(500)
+                                .render('error', { message: `Error occured while finding user` });
+                            return;
+                        })
+                })
+                .catch(err =>
+                {
+                    res
+                        .status(500)
+                        .render('error', { message: `Internal Server Error! Please try again` });
+                    return;
+                })
+        })
+        .catch(async (err) =>
+        {
+            res
+                .status(500)
+                .render('error', { message: `Error occured while finding user` });
+            return;
+        })
+}
 
 /**
   * @description Logout current user
@@ -1519,11 +1540,11 @@ exports.datasheet = async (req, res) =>
         const worksheet = workbook.addWorksheet("Students");
 
         worksheet.columns = [
-            { header: "firstName", key: "firstName" },
-            { header: "lastName", key: "lastName" },
-            { header: "email", key: "email" },
-            { header: "gender", key: "gender" },
-            { header: "mobileNumber", key: "mobileNumber" }
+            { header: "FirstName", key: "firstName" },
+            { header: "LastName", key: "lastName" },
+            { header: "Email", key: "email" },
+            { header: "Gender", key: "gender" },
+            { header: "Mobile-Number", key: "mobileNumber" }
         ]
 
         let counter = 1;
@@ -1766,3 +1787,20 @@ exports.postJobPage = async (req, res) =>
     const comp = await company.findById(req.id).exec();
     res.render('companyPostJob', { name: comp.companyName });
 }
+
+exports.updateResumeHelper = async (req, res) =>
+{
+    const id = req.id;
+    await student.find({ _id: id })
+        .then((data) =>
+        {
+            // render to update student page ex. {/updateStudent/:id}
+            res.render('studentUpdateResume', { student: data[0] });
+        })
+        .catch((err) =>
+        {
+            res
+                .status(500)
+                .render('error', { message: `Error retrieving user with email ${email}` });
+        });
+};
