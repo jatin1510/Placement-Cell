@@ -1131,6 +1131,12 @@ exports.postJob = async (req, res) =>
     if (req.body.msc)
         arr.push(req.body.msc);
 
+    if (arr.length == 0) {
+        res
+            .status(404)
+            .render('companyPostJob', { message: 'Please Enter Branch', name : comp.companyName});
+        return;
+    }
     // new student
     const user = await new job({
         comp: req.id,
@@ -1765,7 +1771,11 @@ exports.unplacedstudent = async (req, res) =>
         await student.findByIdAndUpdate(id, { isPlaced: true }, { useFindAndModify: false })
             .then(async (data) =>
             {
-                res.redirect("/adminStudents")
+                const std = await studentJob.find({student : id}).exec();
+                for(let i = 0; i < std.length; i++) {
+                    await studentJob.findByIdAndDelete(std[i]._id);
+                }
+                res.redirect("/adminStudents");
             })
             .catch(err =>
             {
@@ -1785,7 +1795,7 @@ exports.unplacedstudent = async (req, res) =>
 exports.postJobPage = async (req, res) =>
 {
     const comp = await company.findById(req.id).exec();
-    res.render('companyPostJob', { name: comp.companyName });
+    res.render('companyPostJob', { name: comp.companyName, message : "" });
 }
 
 exports.updateResumeHelper = async (req, res) =>

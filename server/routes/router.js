@@ -30,7 +30,7 @@ route.post('/adminUpdatePassword', authorization, controller.adminUpdatePassword
 route.post('/registerStudent', controller.registerStudent);
 route.post('/registerCompany', controller.registerCompany);
 route.post('/registerAdmin', controller.registerAdmin);
-route.post('/postJob', controller.postJob);
+route.post('/postJob', authorization, controller.postJob);
 
 /**
   * @description Login Route
