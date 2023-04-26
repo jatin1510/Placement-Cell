@@ -32,6 +32,7 @@ const companySchema = new Schema({
     contactNumber: { type: String, required: true },
     password: { type: String, required: true },
     isVerified: { type: Boolean, default: false },
+    isRejected: { type: Boolean, default: false },
 });
 
 const adminSchema = new Schema({

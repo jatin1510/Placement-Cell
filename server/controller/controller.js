@@ -37,7 +37,7 @@ exports.findPerson = async (req, res) =>
     const role = req.body.role;
     const password = req.body.password;
 
-    // console.log(email, role, password);
+    console.log(email, role, password);
     if (role == "Student") {
         await student.find({ email: email })
             .then((data) =>
@@ -185,7 +185,7 @@ exports.alreadyLoggedIn = async (req, res) =>
             })
             .catch((err) =>
             {
-                console.log(err);
+                // console.log(err);
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -283,7 +283,7 @@ exports.registerStudent = async (req, res) =>
         return;
     }
 
-    if (req.body.confirmPassword !== req.body.password) {
+    if (req.body.confirmPassword !== req.body.newPassword || req.body.confirmPassword !== req.body.password) {
         // make new webpage for any type for error
         res
             .status(400)
@@ -352,7 +352,7 @@ exports.registerCompany = async (req, res) =>
     }
 
 
-    if (req.body.confirmPassword !== req.body.password) {
+    if (req.body.confirmPassword !== req.body.newPassword || req.body.confirmPassword !== req.body.password) {
         // make new webpage for any type for error
         res
             .status(400)
@@ -360,7 +360,7 @@ exports.registerCompany = async (req, res) =>
         return;
     }
 
-    console.log(req.body);
+    // console.log(req.body);
     await bcrypt.hash(req.body.password, saltRounds)
         .then((hashedPassword) =>
         {
@@ -413,7 +413,7 @@ exports.registerAdmin = async (req, res) =>
     }
 
 
-    // if (req.body.confirmPassword !== req.body.password) {
+    // if (req.body.confirmPassword !== req.body.newPassword || req.body.confirmPassword !== req.body.password) {
     //     // make new webpage for any type for error
     //     res
     //         .status(400)
@@ -555,7 +555,7 @@ exports.updateStudent = async (req, res) =>
     const old = req.body.password;
 
     if (req.body.password) {
-        console.log(req.body.password, req.body.newPassword, req.body.newConfirmPassword);
+        // console.log(req.body.password, req.body.newPassword, req.body.newConfirmPassword);
 
         await student.findById(id)
             .then(async (data) =>
@@ -570,6 +570,7 @@ exports.updateStudent = async (req, res) =>
                         res
                             .status(500)
                             .render('error', { message: `New Password and Confirm Password Not matched` });
+                        return;
                     }
                     if (!bcrypt.compareSync(req.body.password, data.password)) {
                         res
