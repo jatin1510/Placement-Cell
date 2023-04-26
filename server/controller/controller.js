@@ -1446,7 +1446,7 @@ exports.viewCompany = async (req, res) =>
         res.render('studentCompanyDetails', { jobs: data, registered: registered, user: user, location: uniqueLocations, titles: uniquejobTitles });
     }
     else {
-        res.render('error', 'You have not access to the company list');
+        res.render('error', {message: 'You have not access to the company list'});
     }
 }
 

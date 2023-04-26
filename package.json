@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
-    "test": "mocha test/login.js"
+    "test": "mocha test/*"
   },
   "engines": {
     "node": ">=16 <17"
