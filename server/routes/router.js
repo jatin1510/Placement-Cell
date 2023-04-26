@@ -61,7 +61,7 @@ route.get('/logout', authorization, controller.logoutUser);
   * @description Delete Routes
   * @method DELETE /
   */
-route.delete('/delete', authorization, controller.deleteUser);
+route.get('/delete', authorization, controller.deleteUser);
 
 /**
   * @description mail for specific job to students
@@ -98,7 +98,7 @@ route.post('/updateJobPost/:id', authorization, controller.updateJobPost);
 
 route.get('/unverifiedstudents', authorizationAdmin, controller.verifystudent);
 route.get('/unverifiedjobs', authorizationAdmin, controller.verifyjob);
-route.get('/unverifiedcompany', authorizationAdmin, controller.verifycompany);
+route.get('/unverifiedcompany', authorizationSuperAdmin, controller.verifycompany);
 route.get('/unplaced/:id', authorizationAdmin, controller.unplacedstudent);
 route.get('/adminInterviewSchedule', authorizationAdmin, controller.adminInterviewSchedule);
 route.get('/datasheet', authorizationAdmin, controller.datasheet);

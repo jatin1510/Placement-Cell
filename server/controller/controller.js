@@ -287,7 +287,7 @@ exports.registerStudent = async (req, res) =>
         // make new webpage for any type for error
         res
             .status(400)
-            .render('error', { message: "Password doesn't matched" });
+            .render('error', { message: "Confirm Password doesn't matched" });
         return;
     }
 
@@ -351,6 +351,15 @@ exports.registerCompany = async (req, res) =>
         return;
     }
 
+
+    if (req.body.confirmPassword !== req.body.password) {
+        // make new webpage for any type for error
+        res
+            .status(400)
+            .render('error', { message: "Confirm Password doesn't matched" });
+        return;
+    }
+
     console.log(req.body);
     await bcrypt.hash(req.body.password, saltRounds)
         .then((hashedPassword) =>
@@ -402,6 +411,15 @@ exports.registerAdmin = async (req, res) =>
             .render('error', { message: 'Content can not be empty!' });
         return;
     }
+
+
+    // if (req.body.confirmPassword !== req.body.password) {
+    //     // make new webpage for any type for error
+    //     res
+    //         .status(400)
+    //         .render('error', { message: "Confirm Password doesn't matched" });
+    //     return;
+    // }
 
     await bcrypt.hash(req.body.password, saltRounds)
         .then((hashedPassword) =>
@@ -532,7 +550,7 @@ exports.updateStudent = async (req, res) =>
             .status(500)
             .render('error', { message: 'Role not matched' });
         return;
-    }   
+    }
 
     const old = req.body.password;
 
@@ -844,8 +862,8 @@ exports.deleteUser = async (req, res) =>
                     res.status(404).render('error', { message: `Cannot delete with id ${id}. Maybe ID is wrong!` })
                 }
                 else {
-                    // res.render('error', { message: 'User was deleted successfully' });
-                    res.send('User was deleted successfully');
+                    // res.render('error', { message: 'User was deleted successfully' });                    res.send('User was deleted successfully');
+                    res.redirect('/logout');
                 }
             })
             .catch(err =>
@@ -863,7 +881,7 @@ exports.deleteUser = async (req, res) =>
                     res.status(404).render('error', { message: `Cannot delete with id ${id}. Maybe ID is wrong!` })
                 }
                 else {
-                    res.send('User was deleted successfully');
+                    res.redirect('/logout');
                 }
             })
             .catch(err =>
@@ -881,7 +899,7 @@ exports.deleteUser = async (req, res) =>
                     res.status(404).render('error', { message: `Cannot delete with id ${id}. Maybe ID is wrong!` })
                 }
                 else {
-                    res.send('User was deleted successfully');
+                    res.redirect('/logout');
                 }
             })
             .catch(err =>

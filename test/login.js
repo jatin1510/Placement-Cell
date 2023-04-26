@@ -8,18 +8,19 @@ chai.use(chaiHttp);
 describe('Testing route /login', () =>
 {
     const host = `http://localhost:3000`;
-    const path = "/login";
+    const path = "/profile";
 
     // Role Student
     it("Role Student: With All valid Credentials", (done) =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
-            .send({ email: '202001226@daiict.ac.in', password: 'jatin1510', role: 'Student' })
+            .send({ email: '202001226@daiict.ac.in', password: 'Jatin@123', role: 'Student' })
             .end(function (error, response, body)
             {
+                console.log(response);
                 response.should.have.status(200);
                 done();
             });
@@ -29,7 +30,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '202001258@daiict.ac.in', password: 'jatin1510', role: 'Student' })
             .end(function (error, response, body)
@@ -43,7 +44,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '', password: 'jatin1510', role: 'Student' })
             .end(function (error, response, body)
@@ -57,7 +58,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '202001226@daiict.ac.in', password: 'jatin15102002', role: 'Student' })
             .end(function (error, response, body)
@@ -72,9 +73,9 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
-            .send({ email: 'google@gmail.com', password: 'google', role: 'Company' })
+            .send({ email: 'microsoft@microsoft.com', password: 'Apple@1203', role: 'Company' })
             .end(function (error, response, body)
             {
                 response.should.have.status(200);
@@ -86,7 +87,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: 'mocha@gmail.com', password: 'mochi', role: 'Company' })
             .end(function (error, response, body)
@@ -100,7 +101,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '', password: 'password', role: 'Company' })
             .end(function (error, response, body)
@@ -114,7 +115,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: 'google@gmail.com', password: 'googlers', role: 'Company' })
             .end(function (error, response, body)
@@ -129,9 +130,9 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
-            .send({ email: '202003039@daiict.ac.in', password: 'iammukli', role: 'Admin' })
+            .send({ email: '202003039@daiict.ac.in', password: '123', role: 'Admin' })
             .end(function (error, response, body)
             {
                 response.should.have.status(200);
@@ -143,7 +144,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '202001196@daiict.ac.com', password: 'viraj', role: 'Admin' })
             .end(function (error, response, body)
@@ -157,7 +158,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '', password: 'password', role: 'Admin' })
             .end(function (error, response, body)
@@ -171,7 +172,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '202003039@daiict.ac.in', password: 'iamMukundLadani', role: 'Admin' })
             .end(function (error, response, body)
@@ -186,7 +187,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: 'placement@daiict.ac.in', password: 'superadmin', role: 'Placement Manager' })
             .end(function (error, response, body)
@@ -200,7 +201,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: 'placement@daiict.ac.in', password: 'notsuperadmin', role: 'Placement Manager' })
             .end(function (error, response, body)
@@ -215,7 +216,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '202001226@daiict.ac.in', password: 'jatin1510', role: 'Admin' })
             .end(function (error, response, body)
@@ -228,7 +229,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: 'google@gmail.com', password: 'google', role: 'Student' })
             .end(function (error, response, body)
@@ -241,7 +242,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: '202003039@daiict.ac.in', password: 'immukli', role: 'Company' })
             .end(function (error, response, body)
@@ -254,7 +255,7 @@ describe('Testing route /login', () =>
     {
         chai
             .request(host)
-            .get(path)
+            .post(path)
             .set('content-type', 'application/x-www-form-urlencoded')
             .send({ email: 'placement@daiict.ac.in', password: 'superadmin', role: 'Student' })
             .end(function (error, response, body)
