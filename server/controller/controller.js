@@ -8,8 +8,7 @@ require('dotenv').config({ path: 'config.env' });
 
 const cookie_expires_in = 24 * 60 * 60 * 1000;
 
-const generateToken = (id, email, role) =>
-{
+const generateToken = (id, email, role) => {
     return jwt.sign(
         { id, email, role },
         process.env.JWT_SECRET, {
@@ -17,8 +16,7 @@ const generateToken = (id, email, role) =>
     });
 };
 
-exports.home = async (req, res) =>
-{
+exports.home = async (req, res) => {
     const token = req.cookies.jwt;
     if (token) {
         res.render('Home', { flag: true });
@@ -31,8 +29,7 @@ exports.home = async (req, res) =>
 /**
   * @description Login Utility Function
   */
-exports.findPerson = async (req, res) =>
-{
+exports.findPerson = async (req, res) => {
     const email = req.body.email;
     const role = req.body.role;
     const password = req.body.password;
@@ -40,8 +37,7 @@ exports.findPerson = async (req, res) =>
     // console.log(email, role, password);
     if (role == "Student") {
         await student.find({ email: email })
-            .then((data) =>
-            {
+            .then((data) => {
                 if (!data) {
                     res
                         .status(404)
@@ -60,8 +56,7 @@ exports.findPerson = async (req, res) =>
                     res.redirect('/profile');
                 }
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -69,8 +64,7 @@ exports.findPerson = async (req, res) =>
     }
     else if (role == "Company") {
         await company.find({ email: email })
-            .then((data) =>
-            {
+            .then((data) => {
                 if (!data) {
                     // Make new webpage for all not found errors
                     res
@@ -90,8 +84,7 @@ exports.findPerson = async (req, res) =>
                     res.redirect('/profile');
                 }
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -99,8 +92,7 @@ exports.findPerson = async (req, res) =>
     }
     else {
         await admin.find({ email: email })
-            .then(async (data) =>
-            {
+            .then(async (data) => {
                 if (!data) {
                     // Make new webpage for all not found errors
                     res
@@ -151,8 +143,7 @@ exports.findPerson = async (req, res) =>
                     }
                 }
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -163,8 +154,7 @@ exports.findPerson = async (req, res) =>
 /**
   * @description Already logged in
   */
-exports.alreadyLoggedIn = async (req, res) =>
-{
+exports.alreadyLoggedIn = async (req, res) => {
     const _id = req.id;
     const email = req.email;
     const role = req.role;
@@ -172,18 +162,22 @@ exports.alreadyLoggedIn = async (req, res) =>
 
     if (role == "Student") {
         await student.findById(_id)
-            .then((data) =>
-            {
+            .then(async (data) => {
                 if (!data) {
                     res
                         .status(404)
                         .render('error', { message: `Not found user with email: ${email} ` });
                 } else {
-                    res.render('studentProfile', { student: data });
+                    const link = await studentPlaced.findOne({ student: data._id });
+                    let jobData = null;
+                    if(link){
+                        jobData = await job.findById(link.job);
+                    }
+                    const sendData = {student : data, job: jobData};
+                    res.render('studentProfile', { student: sendData });
                 }
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 // console.log(err);
                 res
                     .status(500)
@@ -192,8 +186,7 @@ exports.alreadyLoggedIn = async (req, res) =>
     }
     else if (role == "Company") {
         await company.findById(_id)
-            .then(async (data) =>
-            {
+            .then(async (data) => {
                 if (!data) {
                     // Make new webpage for all not found errors
                     res
@@ -210,8 +203,7 @@ exports.alreadyLoggedIn = async (req, res) =>
                     }
                 }
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -219,8 +211,7 @@ exports.alreadyLoggedIn = async (req, res) =>
     }
     else {
         await admin.findById(_id)
-            .then(async (data) =>
-            {
+            .then(async (data) => {
                 if (!data) {
                     // Make new webpage for all not found errors
                     res
@@ -259,8 +250,7 @@ exports.alreadyLoggedIn = async (req, res) =>
                     }
                 }
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -272,8 +262,7 @@ exports.alreadyLoggedIn = async (req, res) =>
   * @description Register Utility Functions
   */
 // Register student
-exports.registerStudent = async (req, res) =>
-{
+exports.registerStudent = async (req, res) => {
     // validate request
     if (!req.body) {
         res
@@ -284,8 +273,7 @@ exports.registerStudent = async (req, res) =>
 
     // console.log(req.body);
     await bcrypt.hash(req.body.password, saltRounds)
-        .then((hashedPassword) =>
-        {
+        .then((hashedPassword) => {
             // new student
             const user = new student({
                 email: req.body.email,
@@ -309,15 +297,13 @@ exports.registerStudent = async (req, res) =>
             // save student in the database
             user
                 .save(user)
-                .then(data =>
-                {
+                .then(data => {
                     const token = generateToken(data._id, user.email, "Student");
                     res.cookie("jwt", token, { maxAge: cookie_expires_in, httpOnly: true });
                     res.redirect('/profile');
                     // res.send(data);
                 })
-                .catch(err =>
-                {
+                .catch(err => {
                     res
                         .status(500)
                         .render('error', {
@@ -325,8 +311,7 @@ exports.registerStudent = async (req, res) =>
                         });
                 });
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res
                 .status(500)
                 .render('error', { message: err.message || 'Some error occured while hashing password' });
@@ -334,8 +319,7 @@ exports.registerStudent = async (req, res) =>
 }
 
 // Register company
-exports.registerCompany = async (req, res) =>
-{
+exports.registerCompany = async (req, res) => {
     // validate request
     if (!req.body) {
         res
@@ -354,8 +338,7 @@ exports.registerCompany = async (req, res) =>
 
     // console.log(req.body);
     await bcrypt.hash(req.body.password, saltRounds)
-        .then((hashedPassword) =>
-        {
+        .then((hashedPassword) => {
             // new company
             const user = new company({
                 email: req.body.email,
@@ -369,15 +352,13 @@ exports.registerCompany = async (req, res) =>
             // save company in the database
             user
                 .save(user)
-                .then((data) =>
-                {
+                .then((data) => {
                     const token = generateToken(data._id, data.email, "Company");
                     res.cookie("jwt", token, { maxAge: cookie_expires_in, httpOnly: true });
                     res.redirect('/profile');
 
                 })
-                .catch(err =>
-                {
+                .catch(err => {
                     res
                         .status(500)
                         .render('error', {
@@ -385,8 +366,7 @@ exports.registerCompany = async (req, res) =>
                         });
                 });
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res
                 .status(500)
                 .render('error', { message: err.message || 'Some error occured while hashing password' });
@@ -394,8 +374,7 @@ exports.registerCompany = async (req, res) =>
 }
 
 // Register company
-exports.registerAdmin = async (req, res) =>
-{
+exports.registerAdmin = async (req, res) => {
     // validate request
     if (!req.body) {
         res
@@ -414,8 +393,7 @@ exports.registerAdmin = async (req, res) =>
     }
 
     await bcrypt.hash(req.body.password, saltRounds)
-        .then((hashedPassword) =>
-        {
+        .then((hashedPassword) => {
             // new company
             const user = new admin({
                 email: req.body.email,
@@ -427,14 +405,12 @@ exports.registerAdmin = async (req, res) =>
             // save company in the database
             user
                 .save(user)
-                .then((data) =>
-                {
+                .then((data) => {
                     const token = generateToken(data._id, user.email, "Admin");
                     res.cookie("jwt", token, { maxAge: cookie_expires_in, httpOnly: true });
                     res.send(data);
                 })
-                .catch(err =>
-                {
+                .catch(err => {
                     res
                         .status(500)
                         .render('error', {
@@ -442,8 +418,7 @@ exports.registerAdmin = async (req, res) =>
                         });
                 });
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res
                 .status(500)
                 .render('error', { message: err.message || 'Some error occured while hashing password' });
@@ -453,21 +428,18 @@ exports.registerAdmin = async (req, res) =>
 /**
   * @description Routing update request to particular role (kind of serving related webpage to logged in role)
   */
-exports.updateUser = async (req, res) =>
-{
+exports.updateUser = async (req, res) => {
     const email = req.email;
     const role = req.role;
     const id = req.id;
 
     if (role == "Student") {
         await student.find({ _id: id })
-            .then((data) =>
-            {
+            .then((data) => {
                 // render to update student page ex. {/updateStudent/:id}
                 res.render('studentEditProfile', { student: data[0] });
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -475,13 +447,11 @@ exports.updateUser = async (req, res) =>
     }
     else if (role == "Company") {
         await company.find({ _id: id })
-            .then((data) =>
-            {
+            .then((data) => {
                 // render to update company page ex. {/updateCompany/:id}
                 res.render('companyEditProfile', { company: data[0] });
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -489,8 +459,7 @@ exports.updateUser = async (req, res) =>
     }
     else {
         await admin.find({ _id: id })
-            .then((data) =>
-            {
+            .then((data) => {
                 // initialize cookie with role student and email
                 if (data[0].role == 1) {
                     if (role === "Placement Manager") {
@@ -515,8 +484,7 @@ exports.updateUser = async (req, res) =>
                     }
                 }
             })
-            .catch((err) =>
-            {
+            .catch((err) => {
                 res
                     .status(500)
                     .render('error', { message: `Error retrieving user with email ${email}` });
@@ -527,8 +495,7 @@ exports.updateUser = async (req, res) =>
 /**
   * @description Individual user update request to database
   */
-exports.updateStudent = async (req, res) =>
-{
+exports.updateStudent = async (req, res) => {
     if (!req.body) {
         return res
             .status(400)
@@ -547,8 +514,7 @@ exports.updateStudent = async (req, res) =>
     const stored = req.body;
     // console.log(stored);
     await student.findByIdAndUpdate(id, stored, { useFindAndModify: false })
-        .then((data) =>
-        {
+        .then((data) => {
             if (!data) {
                 res
                     .status(400)
@@ -557,16 +523,14 @@ exports.updateStudent = async (req, res) =>
                 res.redirect('/profile');
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res
                 .status(500)
                 .render('error', { message: 'Error update student information' });
         })
 }
 
-exports.updateCompany = async (req, res) =>
-{
+exports.updateCompany = async (req, res) => {
     if (!req.body) {
         return res
             .status(400)
@@ -584,8 +548,7 @@ exports.updateCompany = async (req, res) =>
     }
     const stored = req.body;
     await company.findByIdAndUpdate(id, stored, { useFindAndModify: false })
-        .then((data) =>
-        {
+        .then((data) => {
             if (!data) {
                 res
                     .status(400)
@@ -594,16 +557,14 @@ exports.updateCompany = async (req, res) =>
                 res.redirect('/profile');
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res
                 .status(500)
                 .render('error', { message: 'Error update company information' });
         })
 }
 
-exports.updateAdmin = async (req, res) =>
-{
+exports.updateAdmin = async (req, res) => {
     if (!req.body) {
         return res
             .status(400)
@@ -622,23 +583,20 @@ exports.updateAdmin = async (req, res) =>
 
     const stored = req.body;
     await admin.findByIdAndUpdate(id, stored, { useFindAndModify: false })
-        .then((data) =>
-        {
+        .then((data) => {
             if (!data) {
                 res.status(400).render('error', { message: `Cannot update admin with ${id}. May be user not found!` })
             } else {
                 res.redirect('/profile');
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', { message: 'Error update admin information' });
         })
 }
 
 
-exports.updatePassword = async (req, res) =>
-{
+exports.updatePassword = async (req, res) => {
     const email = req.email;
     const role = req.role;
     const id = req.id;
@@ -659,8 +617,7 @@ exports.updatePassword = async (req, res) =>
     }
 }
 
-exports.studentUpdatePassword = async (req, res) =>
-{
+exports.studentUpdatePassword = async (req, res) => {
     const role = req.role;
     if (role !== "Student") {
         res.status(500).render('error', { message: 'Role not matched.' });
@@ -680,8 +637,7 @@ exports.studentUpdatePassword = async (req, res) =>
     const id = req.id;
 
     await student.findById(id)
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             if (!bcrypt.compareSync(old, data.password)) {
                 res
                     .status(500)
@@ -690,33 +646,28 @@ exports.studentUpdatePassword = async (req, res) =>
             }
 
             await bcrypt.hash(newP, saltRounds)
-                .then(async (hashedPassword) =>
-                {
-                    console.log(old);
-                    console.log(newP, hashedPassword);
+                .then(async (hashedPassword) => {
+                    // console.log(old);
+                    // console.log(newP, hashedPassword);
                     await student.findByIdAndUpdate(id, { password: hashedPassword })
-                        .then(async (data) =>
-                        {
+                        .then(async (data) => {
                             res.redirect('/profile');
                         })
-                        .catch(async (err) =>
-                        {
+                        .catch(async (err) => {
                             res
                                 .status(500)
                                 .render('error', { message: `Error occured while finding user` });
                             return;
                         })
                 })
-                .catch(err =>
-                {
+                .catch(err => {
                     res
                         .status(500)
                         .render('error', { message: `Internal Server Error! Please try again` });
                     return;
                 })
         })
-        .catch(async (err) =>
-        {
+        .catch(async (err) => {
             res
                 .status(500)
                 .render('error', { message: `Error occured while finding user` });
@@ -726,15 +677,14 @@ exports.studentUpdatePassword = async (req, res) =>
 
 }
 
-exports.companyUpdatePassword = async (req, res) =>
-{
+exports.companyUpdatePassword = async (req, res) => {
     const role = req.role;
     if (role !== "Company") {
         res.status(500).render('error', { message: 'Role not matched.' });
         return;
     }
 
-    console.log(req.body);
+    // console.log(req.body);
     const old = req.body.password;
     const newP = req.body.newPassword;
     const newCP = req.body.newConfirmPassword;
@@ -747,8 +697,7 @@ exports.companyUpdatePassword = async (req, res) =>
     const id = req.id;
 
     await company.findById(id)
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             if (!bcrypt.compareSync(req.body.password, data.password)) {
                 res
                     .status(500)
@@ -757,31 +706,26 @@ exports.companyUpdatePassword = async (req, res) =>
             }
 
             await bcrypt.hash(req.body.newPassword, saltRounds)
-                .then(async (hashedPassword) =>
-                {
+                .then(async (hashedPassword) => {
                     await company.findByIdAndUpdate(id, { password: hashedPassword })
-                        .then(async (data) =>
-                        {
+                        .then(async (data) => {
                             res.redirect('/profile');
                         })
-                        .catch(async (err) =>
-                        {
+                        .catch(async (err) => {
                             res
                                 .status(500)
                                 .render('error', { message: `Error occured while finding user` });
                             return;
                         })
                 })
-                .catch(err =>
-                {
+                .catch(err => {
                     res
                         .status(500)
                         .render('error', { message: `Internal Server Error! Please try again` });
                     return;
                 })
         })
-        .catch(async (err) =>
-        {
+        .catch(async (err) => {
             res
                 .status(500)
                 .render('error', { message: `Error occured while finding user` });
@@ -789,15 +733,14 @@ exports.companyUpdatePassword = async (req, res) =>
         })
 }
 
-exports.adminUpdatePassword = async (req, res) =>
-{
+exports.adminUpdatePassword = async (req, res) => {
     const role = req.role;
     if (role !== "Admin" && role !== "Placement Manager") {
         res.status(500).render('error', { message: 'Role not matched.' });
         return;
     }
 
-    console.log(req.body);
+    // console.log(req.body);
     const old = req.body.password;
     const newP = req.body.newPassword;
     const newCP = req.body.newConfirmPassword;
@@ -810,8 +753,7 @@ exports.adminUpdatePassword = async (req, res) =>
     const id = req.id;
 
     await admin.findById(id)
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             if (!bcrypt.compareSync(req.body.password, data.password)) {
                 res
                     .status(500)
@@ -820,31 +762,26 @@ exports.adminUpdatePassword = async (req, res) =>
             }
 
             await bcrypt.hash(req.body.newPassword, saltRounds)
-                .then(async (hashedPassword) =>
-                {
+                .then(async (hashedPassword) => {
                     await admin.findByIdAndUpdate(id, { password: hashedPassword })
-                        .then(async (data) =>
-                        {
+                        .then(async (data) => {
                             res.redirect('/profile');
                         })
-                        .catch(async (err) =>
-                        {
+                        .catch(async (err) => {
                             res
                                 .status(500)
                                 .render('error', { message: `Error occured while finding user` });
                             return;
                         })
                 })
-                .catch(err =>
-                {
+                .catch(err => {
                     res
                         .status(500)
                         .render('error', { message: `Internal Server Error! Please try again` });
                     return;
                 })
         })
-        .catch(async (err) =>
-        {
+        .catch(async (err) => {
             res
                 .status(500)
                 .render('error', { message: `Error occured while finding user` });
@@ -855,8 +792,7 @@ exports.adminUpdatePassword = async (req, res) =>
 /**
   * @description Logout current user
   */
-exports.logoutUser = async (req, res) =>
-{
+exports.logoutUser = async (req, res) => {
     res
         .clearCookie("jwt")
         .status(200)
@@ -868,8 +804,7 @@ exports.logoutUser = async (req, res) =>
 /**
   * @description Delete current user
   */
-exports.deleteUser = async (req, res) =>
-{
+exports.deleteUser = async (req, res) => {
     const role = req.role;
     const id = req.id;
 
@@ -878,8 +813,7 @@ exports.deleteUser = async (req, res) =>
 
     if (role == "Student") {
         student.findByIdAndDelete(id)
-            .then(data =>
-            {
+            .then(data => {
                 if (!data) {
                     res.status(404).render('error', { message: `Cannot delete with id ${id}. Maybe ID is wrong!` })
                 }
@@ -888,8 +822,7 @@ exports.deleteUser = async (req, res) =>
                     res.redirect('/logout');
                 }
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).render('error', {
                     message: `Could not delete user with id=${id}`,
                 });
@@ -897,8 +830,7 @@ exports.deleteUser = async (req, res) =>
     }
     else if (role == "Company") {
         company.findByIdAndDelete(id)
-            .then(data =>
-            {
+            .then(data => {
                 if (!data) {
                     res.status(404).render('error', { message: `Cannot delete with id ${id}. Maybe ID is wrong!` })
                 }
@@ -906,8 +838,7 @@ exports.deleteUser = async (req, res) =>
                     res.redirect('/logout');
                 }
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).render('error', {
                     message: `Could not delete user with id=${id}`,
                 });
@@ -915,8 +846,7 @@ exports.deleteUser = async (req, res) =>
     }
     else {
         admin.findByIdAndDelete(id)
-            .then(data =>
-            {
+            .then(data => {
                 if (!data) {
                     res.status(404).render('error', { message: `Cannot delete with id ${id}. Maybe ID is wrong!` })
                 }
@@ -924,8 +854,7 @@ exports.deleteUser = async (req, res) =>
                     res.redirect('/logout');
                 }
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).render('error', {
                     message: `Could not delete user with id=${id}`,
                 });
@@ -936,8 +865,7 @@ exports.deleteUser = async (req, res) =>
 /**
   * @description Automate Mail
   */
-exports.sendMail = async (req, res) =>
-{
+exports.sendMail = async (req, res) => {
     const transporter = nodemailer.createTransport({
         service: "hotmail",
         auth: {
@@ -965,12 +893,10 @@ exports.sendMail = async (req, res) =>
 
     const id = req.params.id;
     await job.findById(id)
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             const companyId = data.comp;
             await company.findById(companyId)
-                .then(async (companyData) =>
-                {
+                .then(async (companyData) => {
                     const CompanyName = companyData.companyName;
                     const JobName = data.jobName;
                     const locations = data.postingLocation;
@@ -1009,8 +935,7 @@ exports.sendMail = async (req, res) =>
                                 <div>Placement Cell</div>`,
                     };
 
-                    await transporter.sendMail(options, function (err, info)
-                    {
+                    await transporter.sendMail(options, function (err, info) {
                         if (err) {
                             console.log("Error occured", err);
                             return;
@@ -1020,14 +945,12 @@ exports.sendMail = async (req, res) =>
 
                     res.redirect('/adminInterviewSchedule');
                 })
-                .catch(err =>
-                {
+                .catch(err => {
                     res.status(500).render('error', { message: 'Company not found' });
                 })
 
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', { message: 'Job not found' });
         })
 }
@@ -1035,18 +958,15 @@ exports.sendMail = async (req, res) =>
 /**
   * @description Verification Functions
   */
-exports.verifyStudent = async (req, res) =>
-{
+exports.verifyStudent = async (req, res) => {
     const id = req.params.id;
-    console.log(id);
+    // console.log(id);
     if (id) {
         await student.findByIdAndUpdate(id, { isVerified: true }, { useFindAndModify: false })
-            .then(async (data) =>
-            {
+            .then(async (data) => {
                 res.redirect("/unverifiedstudents");
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).render('error', { message: 'Student not found' });
             })
     }
@@ -1061,18 +981,15 @@ exports.verifyStudent = async (req, res) =>
     }
 }
 
-exports.verifyJob = async (req, res) =>
-{
+exports.verifyJob = async (req, res) => {
     const id = req.params.id;
     if (id) {
         await job.findByIdAndUpdate(id, { isVerified: true }, { useFindAndModify: false })
-            .then(async (data) =>
-            {
+            .then(async (data) => {
                 res.redirect("/unverifiedjobs")
 
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).render('error', { message: 'Job not found' });
             })
     }
@@ -1086,17 +1003,14 @@ exports.verifyJob = async (req, res) =>
     }
 }
 
-exports.verifyCompany = async (req, res) =>
-{
+exports.verifyCompany = async (req, res) => {
     const id = req.params.id;
     if (id) {
         await company.findByIdAndUpdate(id, { isVerified: true }, { useFindAndModify: false })
-            .then(async (data) =>
-            {
+            .then(async (data) => {
                 res.redirect("/unverifiedcompany")
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).render('error', { message: 'Company not found' });
             })
     }
@@ -1112,8 +1026,7 @@ exports.verifyCompany = async (req, res) =>
 }
 
 
-exports.postJob = async (req, res) =>
-{
+exports.postJob = async (req, res) => {
     // add job to jobSchema
     if (!req.body) {
         res.status(400).render('error', { message: 'Content can not be empty!' });
@@ -1134,7 +1047,7 @@ exports.postJob = async (req, res) =>
     if (arr.length == 0) {
         res
             .status(404)
-            .render('companyPostJob', { message: 'Please Enter Branch', name : comp.companyName});
+            .render('companyPostJob', { message: 'Please Enter Branch', name: comp.companyName });
         return;
     }
     // new student
@@ -1152,25 +1065,21 @@ exports.postJob = async (req, res) =>
     // save student in the database
     user
         .save(user)
-        .then(async data =>
-        {
+        .then(async data => {
             // redirect to company home page
             res.redirect('/profile');
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', {
                 message: err.message || 'Some error occured  while creating a create operation',
             });
         });
 };
 
-exports.registredStudentsInJob = async (req, res) =>
-{
+exports.registredStudentsInJob = async (req, res) => {
     const jobID = req.params.id;
     studentJob.find({ job: jobID })
-        .then(data =>
-        {
+        .then(data => {
             if (!data) {
                 res.status(404).render('error', { message: "Not found Job with id " + jobID })
             } else {
@@ -1186,14 +1095,12 @@ exports.registredStudentsInJob = async (req, res) =>
                         }
                     }
                 ])
-                    .then(async (result) =>
-                    {
+                    .then(async (result) => {
                         const arrayOfStudents = [];
                         for (let index = 0; index < result.length; index++) {
                             // console.log(result[index]);
                             await student.find({ _id: result[index].student })
-                                .then((result1) =>
-                                {
+                                .then((result1) => {
                                     if (!result1) {
                                         res.status(404).render('error', { message: "Not found Student with id " + result[index].student })
                                     }
@@ -1201,8 +1108,7 @@ exports.registredStudentsInJob = async (req, res) =>
                                         arrayOfStudents.push(result1[0]);
                                     }
                                 })
-                                .catch((err) =>
-                                {
+                                .catch((err) => {
                                     res.status(500).render('error', {
                                         message: err.message,
                                     });
@@ -1210,28 +1116,24 @@ exports.registredStudentsInJob = async (req, res) =>
                         }
                         const companyName = await job.findById(jobID);
                         // console.log(arrayOfStudents);
-                        res.render('companyStudentList', { students: arrayOfStudents, name: companyName.companyName });
+                        res.render('companyStudentList', { students: arrayOfStudents, name: companyName.companyName, jobId: jobID });
                     })
-                    .catch((err) =>
-                    {
+                    .catch((err) => {
                         res.status(500).render('error', {
                             message: err.message,
                         });
                     });
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', { message: "Error retrieving Job with id " + jobID });
         })
 };
 
-exports.jobsRegistredbyStudent = (req, res) =>
-{
+exports.jobsRegistredbyStudent = (req, res) => {
     const studentID = req.query.studentID;
     studentJob.find({ student: studentID })
-        .then(data =>
-        {
+        .then(data => {
             if (!data) {
                 res.status(404).render('error', { message: "Not found Student with id " + studentID })
             } else {
@@ -1247,13 +1149,11 @@ exports.jobsRegistredbyStudent = (req, res) =>
                         }
                     }
                 ])
-                    .then(async (result) =>
-                    {
+                    .then(async (result) => {
                         const arrayOfJobs = [];
                         for (let index = 0; index < result.length; index++) {
                             await job.find({ _id: result[index].job })
-                                .then((result1) =>
-                                {
+                                .then((result1) => {
                                     if (!result1) {
                                         res.status(404).render('error', { message: "Not found job with id " + result[index].job })
                                     }
@@ -1261,8 +1161,7 @@ exports.jobsRegistredbyStudent = (req, res) =>
                                         arrayOfJobs.push(result1[0]);
                                     }
                                 })
-                                .catch((err) =>
-                                {
+                                .catch((err) => {
                                     res.status(500).render('error', {
                                         message: err.message,
                                     });
@@ -1271,23 +1170,20 @@ exports.jobsRegistredbyStudent = (req, res) =>
                         // console.log(arrayOfJobs);
                         res.send(arrayOfJobs);
                     })
-                    .catch((err) =>
-                    {
+                    .catch((err) => {
                         res.status(500).render('error', {
                             message: err.message,
                         });
                     });
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', { message: "Error retrieving Student with id " + studentID });
         })
 };
 
 // Help student to register in Job
-exports.registerStudentInJob = async (req, res) =>
-{
+exports.registerStudentInJob = async (req, res) => {
     const jobID = req.params.id;
     const studentID = req.id;
 
@@ -1305,20 +1201,17 @@ exports.registerStudentInJob = async (req, res) =>
     // save student in the database
     user
         .save(user)
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             res.redirect('/viewCompany');
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', {
                 message: err.message || 'Some error occured  while creating a create operation',
             });
         });
 };
 
-exports.deregisterStudentInJob = async (req, res) =>
-{
+exports.deregisterStudentInJob = async (req, res) => {
     const jobID = req.params.id;
     const studentID = req.id;
     // console.log(studentID, jobID);
@@ -1329,8 +1222,7 @@ exports.deregisterStudentInJob = async (req, res) =>
 
     const entry = await studentJob.findOne({ job: jobID, student: studentID });
     await studentJob.findByIdAndDelete(entry._id)
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             if (!data) {
                 res.status(404).render('error', { message: `Cannot delete with id ${entry._id}. Maybe ID is wrong!` })
             }
@@ -1338,16 +1230,14 @@ exports.deregisterStudentInJob = async (req, res) =>
                 res.redirect('/viewCompany');
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', {
                 message: `Could not delete user with id=${id}`,
             });
         });
 };
 
-exports.updateJob = async (req, res) =>
-{
+exports.updateJob = async (req, res) => {
     const jobID = req.params.id;
     if (!req.body) {
         res.status(400).render('error', { message: 'Content can not be empty!' });
@@ -1357,8 +1247,7 @@ exports.updateJob = async (req, res) =>
     res.render('companyEditJobs', { job: jobObject });
 }
 
-exports.updateJobPost = async (req, res) =>
-{
+exports.updateJobPost = async (req, res) => {
     const id = req.params.id;
     // console.log(req.body);
     let arr = [];
@@ -1383,8 +1272,7 @@ exports.updateJobPost = async (req, res) =>
 
     // console.log(sendObject);
     await job.findByIdAndUpdate(id, sendObject, { useFindAndModify: false })
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             if (!data) {
                 res.status(404).render('error', { message: "Cannot update job with id " + id });
             }
@@ -1392,19 +1280,16 @@ exports.updateJobPost = async (req, res) =>
                 res.redirect('/profile');
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', { message: "Error updating job with id " + id })
         });
 }
 
-exports.deleteJob = async (req, res) =>
-{
+exports.deleteJob = async (req, res) => {
     const id = req.params.id;
     // console.log(id);
     await job.findByIdAndDelete(id)
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             if (!data) {
                 res.status(404).render('error', { message: "Cannot delete job with id " + id });
             }
@@ -1413,14 +1298,12 @@ exports.deleteJob = async (req, res) =>
                 res.redirect('/profile');
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', { message: "Error deleting job with id " + id })
         });
 }
 
-exports.viewCompany = async (req, res) =>
-{
+exports.viewCompany = async (req, res) => {
     const id = req.id;
     const role = req.role;
 
@@ -1446,12 +1329,11 @@ exports.viewCompany = async (req, res) =>
         res.render('studentCompanyDetails', { jobs: data, registered: registered, user: user, location: uniqueLocations, titles: uniquejobTitles });
     }
     else {
-        res.render('error', {message: 'You have not access to the company list'});
+        res.render('error', { message: 'You have not access to the company list' });
     }
 }
 
-exports.showCompany = async (req, res) =>
-{
+exports.showCompany = async (req, res) => {
     const id = req.id;
     const jobID = req.params.id;
     const jobDetails = await job.findById(jobID).exec();
@@ -1460,8 +1342,7 @@ exports.showCompany = async (req, res) =>
     res.render('showCompany', { job: jobDetails, user: user });
 }
 
-exports.filter = async (req, res) =>
-{
+exports.filter = async (req, res) => {
     const id = req.id;
 
     const query = { jobName: req.body.jobTitle, postingLocation: req.body.location, cpiCriteria: { $gte: req.body.cpi }, ctc: { $gte: req.body.ctc }, isVerified: true };
@@ -1480,8 +1361,7 @@ exports.filter = async (req, res) =>
     }
 
     job.find(query)
-        .then(async (queryData) =>
-        {
+        .then(async (queryData) => {
             if (!queryData) {
                 res.status(404).render('error', { message: "Not Found" });
             }
@@ -1531,16 +1411,14 @@ exports.filter = async (req, res) =>
                 res.render('studentCompanyDetails', { jobs: finalQuery, registered: registered, user: user, location: uniqueLocations, titles: uniquejobTitles });
             }
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', { message: "Error while fetching data of requested query" })
         });
 }
 
 // Viraj
 // generate datasheet for admin 
-exports.datasheet = async (req, res) =>
-{
+exports.datasheet = async (req, res) => {
     try {
         const workbook = new excelJS.Workbook();
         const worksheet = workbook.addWorksheet("Students");
@@ -1557,13 +1435,11 @@ exports.datasheet = async (req, res) =>
 
         var userdata = await student.find({ isVerified: true, isPlaced: false, isRejected: false });
         let users = [];
-        userdata.forEach((user) =>
-        {
+        userdata.forEach((user) => {
             worksheet.addRow(user);
         });
 
-        worksheet.getRow(1).eachCell((cell) =>
-        {
+        worksheet.getRow(1).eachCell((cell) => {
             cell.font = { bold: true };
         });
         res.setHeader(
@@ -1573,8 +1449,7 @@ exports.datasheet = async (req, res) =>
 
         res.setHeader("Content-Disposition", `attachment; filename=studentData.xlsx`);
 
-        return workbook.xlsx.write(res).then(() =>
-        {
+        return workbook.xlsx.write(res).then(() => {
             res.status(200);
         });
     }
@@ -1587,8 +1462,7 @@ exports.datasheet = async (req, res) =>
 
 
 // fetch data for admin to verify company(only super admin can verify company) , students , jobs : 
-exports.verifycompany = async (req, res) =>
-{
+exports.verifycompany = async (req, res) => {
     let flag = false;
     if (req.role != "Admin") flag = true;
     const data = await company.find({ isVerified: false, isRejected: false }).exec();
@@ -1597,8 +1471,7 @@ exports.verifycompany = async (req, res) =>
 
 }
 
-exports.verifystudent = async (req, res) =>
-{
+exports.verifystudent = async (req, res) => {
     let flag = false;
     if (req.role != "Admin") flag = true;
     const data = await student.find({ isVerified: false, isRejected: false }).exec();
@@ -1607,8 +1480,7 @@ exports.verifystudent = async (req, res) =>
 
 }
 
-exports.verifyjob = async (req, res) =>
-{
+exports.verifyjob = async (req, res) => {
     let flag = false;
     if (req.role != "Admin") {
         flag = true;
@@ -1621,18 +1493,15 @@ exports.verifyjob = async (req, res) =>
 /**
   * @description Verification Functions
 */
-exports.rejectStudent = async (req, res) =>
-{
+exports.rejectStudent = async (req, res) => {
     const id = req.params.id;
-    console.log(id);
+    // console.log(id);
     if (id) {
         await student.findByIdAndUpdate(id, { isRejected: true }, { useFindAndModify: false })
-            .then(async (data) =>
-            {
+            .then(async (data) => {
                 res.redirect("/unverifiedstudents")
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).render('error', { message: 'Student not found' });
             })
     }
@@ -1646,18 +1515,15 @@ exports.rejectStudent = async (req, res) =>
     }
 }
 
-exports.rejectJob = async (req, res) =>
-{
+exports.rejectJob = async (req, res) => {
     const id = req.params.id;
     if (id) {
         await job.findByIdAndUpdate(id, { isRejected: true }, { useFindAndModify: false })
-            .then(async (data) =>
-            {
+            .then(async (data) => {
                 res.redirect("/unverifiedjobs")
 
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).render('error', { message: 'Job not found' });
             })
     }
@@ -1671,22 +1537,18 @@ exports.rejectJob = async (req, res) =>
     }
 }
 
-exports.rejectCompany = async (req, res) =>
-{
+exports.rejectCompany = async (req, res) => {
     const id = req.params.id;
     await company.findByIdAndUpdate(id, { isRejected: true }, { useFindAndModify: false })
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             res.redirect("/unverifiedcompany")
         })
-        .catch(err =>
-        {
+        .catch(err => {
             res.status(500).render('error', { message: 'Company not found' });
         })
 }
 
-exports.adminhome = async (req, res) =>
-{
+exports.adminhome = async (req, res) => {
     let flag = false;
     if (req.role != "Admin") {
         flag = true;
@@ -1694,20 +1556,36 @@ exports.adminhome = async (req, res) =>
     res.render('adminHome', { isSuperAdmin: flag, placed: 30, male: 80 })
 }
 
-exports.adminStudents = async (req, res) =>
-{
+exports.adminStudents = async (req, res) => {
     let flag = false;
     if (req.role != "Admin") {
         flag = true;
     }
 
     const data = await student.find({}).exec();
-    res.render('adminStudents', { students: data, isSuperAdmin: flag });
+    let sendData = [];
+    for(let i=0;i<data.length;i++){
+        if(data[i].isPlaced != true && data[i].isVarified == true && data[i].isRejected == false){
+            
+        }
+        else {
+            const link = await studentPlaced.findOne({student : data[i]._id});
+            // console.log(link);
+            if(!link)
+            {
+                sendData.push({student : data[i], jobNameSend : "Not Placed", companyNameSend : "Not Placed"});
+                continue;
+            }
+            const jobData = await job.findById(link.job);
+            // console.log(jobData);
+            sendData.push({student : data[i], jobNameSend : jobData.jobName, companyNameSend : jobData.companyName});
+        }
+    }
+    res.render('adminStudents', { students: sendData, isSuperAdmin: flag });
 
 }
 
-exports.adminJobs = async (req, res) =>
-{
+exports.adminJobs = async (req, res) => {
     let flag = false;
     if (req.role != "Admin") {
         flag = true;
@@ -1717,8 +1595,7 @@ exports.adminJobs = async (req, res) =>
     res.render('adminJobs', { jobs: data, isSuperAdmin: flag });
 }
 
-exports.adminCompany = async (req, res) =>
-{
+exports.adminCompany = async (req, res) => {
     let flag = false;
     if (req.role != "Admin") {
         flag = true;
@@ -1730,8 +1607,7 @@ exports.adminCompany = async (req, res) =>
 
 
 // need to modify from here 
-exports.adminInterviewSchedule = async (req, res) =>
-{
+exports.adminInterviewSchedule = async (req, res) => {
     let flag = false;
     if (req.role != "Admin") {
         flag = true;
@@ -1740,8 +1616,7 @@ exports.adminInterviewSchedule = async (req, res) =>
     res.render('adminInterviewSchedule', { record: data, isSuperAdmin: flag });
 }
 
-exports.adminUpdateInterviewSchedule = async (req, res) =>
-{
+exports.adminUpdateInterviewSchedule = async (req, res) => {
     if (!req.body) {
         return res
             .status(400)
@@ -1753,32 +1628,27 @@ exports.adminUpdateInterviewSchedule = async (req, res) =>
     const ed = new Date(req.body.endDate);
 
     job.findByIdAndUpdate(id, { startDate: sd, endDate: ed }, { useFindAndModify: false })
-        .then(async (data) =>
-        {
+        .then(async (data) => {
             res.redirect(`/mail/${id}`);
         })
-        .catch((err) =>
-        {
+        .catch((err) => {
             res.status(500).render('error', { message: "Error occured" });
         })
 }
 
-exports.unplacedstudent = async (req, res) =>
-{
+exports.unplacedstudent = async (req, res) => {
     const id = req.params.id;
     // console.log(id);
     if (id) {
         await student.findByIdAndUpdate(id, { isPlaced: true }, { useFindAndModify: false })
-            .then(async (data) =>
-            {
-                const std = await studentJob.find({student : id}).exec();
-                for(let i = 0; i < std.length; i++) {
+            .then(async (data) => {
+                const std = await studentJob.find({ student: id }).exec();
+                for (let i = 0; i < std.length; i++) {
                     await studentJob.findByIdAndDelete(std[i]._id);
                 }
                 res.redirect("/adminStudents");
             })
-            .catch(err =>
-            {
+            .catch(err => {
                 res.status(500).send({ message: 'Student not found' });
             })
     }
@@ -1792,26 +1662,53 @@ exports.unplacedstudent = async (req, res) =>
     }
 }
 
-exports.postJobPage = async (req, res) =>
-{
+exports.postJobPage = async (req, res) => {
     const comp = await company.findById(req.id).exec();
-    res.render('companyPostJob', { name: comp.companyName, message : "" });
+    res.render('companyPostJob', { name: comp.companyName, message: "" });
 }
 
-exports.updateResumeHelper = async (req, res) =>
-{
+exports.updateResumeHelper = async (req, res) => {
     const id = req.id;
     await student.find({ _id: id })
-        .then((data) =>
-        {
+        .then((data) => {
             // render to update student page ex. {/updateStudent/:id}
             res.render('studentUpdateResume', { student: data[0] });
         })
-        .catch((err) =>
-        {
+        .catch((err) => {
             res
                 .status(500)
                 .render('error', { message: `Error retrieving user with email ${email}` });
         });
 };
 
+exports.hireStudent = async (req, res) => {
+    const user = new studentPlaced({
+        job: req.params.jobId,
+        student: req.params.studentId,
+    });
+
+    // student schema isPlaced = true;
+    await student.findByIdAndUpdate(req.params.studentId, { isPlaced: true }, { useFindAndModify: false });
+
+    // save studentPlaced schema
+    await user
+        .save(user)
+        .then((data) => {
+            res.redirect(`/registredStudentsInJob/${req.params.jobId}`);
+        })
+        .catch((err) => {
+            res.status(500).render('error', { message: 'Student is already placed' });
+        });
+    
+    const jobID = req.params.jobId;
+};
+
+exports.unhireStudent = async (req, res) => {
+
+    await studentPlaced.findOneAndDelete({ job: req.params.jobId, student: req.params.studentId });
+    // student schema isPlaced = true;
+    await student.findByIdAndUpdate(req.params.studentId, { isPlaced: false }, { useFindAndModify: false });
+
+    // save studentPlaced schema
+    res.redirect(`/registredStudentsInJob/${req.params.jobId}`);
+};

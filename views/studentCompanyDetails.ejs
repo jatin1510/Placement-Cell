@@ -154,7 +154,11 @@
                                 </a>
                               </td>
                               <td>
-                                <% if(registered[i] == 1) { %>
+                                <% if(user.isPlaced == 1) { %>
+                                    <a class="disabled">
+                                        <button style="background: orange;width: 120px;" type="button" disabled class="btn btn-primary">Placed</button>
+                                    </a>
+                                <% } else if(registered[i] == 1) { %>
                                     <% const curDate = new Date() %>
                                     <% const date1 = new Date(jobs[i].startDate.getTime() + jobs[i].startDate.getTimezoneOffset() * 60000) %>
 
