@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const { student, company, admin, job, studentJob } = require('../model/model');
+const { student, company, admin, job, studentJob, studentPlaced } = require('../model/model');
 const saltRounds = 10;
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
@@ -964,11 +964,11 @@ exports.sendMail = async (req, res) =>
     }
 
     const id = req.params.id;
-    job.findById(id)
-        .then((data) =>
+    await job.findById(id)
+        .then(async (data) =>
         {
             const companyId = data.comp;
-            company.findById(companyId)
+            await company.findById(companyId)
                 .then(async (companyData) =>
                 {
                     const CompanyName = companyData.companyName;
@@ -1814,3 +1814,4 @@ exports.updateResumeHelper = async (req, res) =>
                 .render('error', { message: `Error retrieving user with email ${email}` });
         });
 };
+

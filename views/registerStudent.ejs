@@ -129,13 +129,13 @@
 
           <label for="password" class="label-1"> Password </label>
           <div class="form-group">
-            <input type="password" name="password" id="pass1" autocomplete="off" onkeyup="return validate()" required>
+            <input pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" type="password" name="password" id="pass1" autocomplete="off" onkeyup="return validate()" required>
           </div>
 
           <div class="form-group2" class="label-1">
             <ul>
               <li id="length">
-                Your password contain at least 8 characters.
+                Your password contain atleast 8 characters.
               </li>
               <li id="number">
                 Your password contain atleast one number.
@@ -154,7 +154,7 @@
           </div>
           <label for="confirmPassword" class="label-1"> Confirm Password </label>
           <div class="form-group">
-            <input type="password" name="confirmPassword" id="pass2" autocomplete="off" oninput="return confirm()" required>
+            <input pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$" type="password" name="confirmPassword" id="pass2" autocomplete="off" oninput="return confirm()" required>
           </div>
           <p id="incorrectMsg">Password do not match!</p>
           <div class="btns">

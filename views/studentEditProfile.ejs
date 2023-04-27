@@ -77,7 +77,7 @@
       <div class="userimage">
         <h2 class="mb-4">Welcome, <%= student.firstName %> <%= student.lastName %> </h2>
       </div>
-      <form action="/updateStudent" method="POST">
+      <form onsubmit="return checkForm();" action="/updateStudent" method="POST">
 
         <table class="table table-hover">
           <tr>
@@ -103,7 +103,22 @@
           <tr>
             <td>Gender</td>
             <td>:</td>
-            <td> <input type="text" name="gender" value="<%= student.gender %>" placeholder="Enter your Last Name"> </td>
+            <td> 
+              <!-- <input name="branch" type="text" value="<%= student.branch %>" placeholder="Enter Total Backlogs">  -->
+                        <select name="gender" id="role">
+                            <option <% if(student.gender === "Male") { %>
+                              selected
+                              <% } %>
+                               value="Male">Male</option>
+                            <option <% if(student.gender === "Female") { %>
+                              selected
+                              <% } %>
+                            value="Female">Female </option>
+                            <option <% if(student.gender === "Other") { %>
+                              selected
+                              <% } %> value="Other">Other</option>
+                        </select>
+            </td>
           </tr>
           <tr>
             <td>Mobile Number</td>
@@ -118,33 +133,32 @@
           <tr>
             <td>10th Percentage</td>
             <td>:</td>
-            <td><input name="tenthPercentage" type="number" min="1" max="100" step="0.01" value="<%= student.tenthPercentage %>" placeholder="Enter 10th Percentage"></td>
+            <td><input name="tenthPercentage" type="number" min="0" max="100" step="0.01" value="<%= student.tenthPercentage %>" placeholder="Enter 10th Percentage"></td>
           </tr>
           <tr>
             <td>12th Percentage</td>
             <td>:</td>
-            <td><input name="twelfthPercentage" type="number" min="1" max="100" step="0.01" value="<%= student.twelfthPercentage %>" placeholder="Enter 12th Percentage"></td>
+            <td><input name="twelfthPercentage" type="number" min="0" max="100" step="0.01" value="<%= student.twelfthPercentage %>" placeholder="Enter 12th Percentage"></td>
           </tr>
           <tr>
             <td>CPI</td>
             <td>:</td>
-            <td> <input name="cpi" type="number" min="1" max="100" step="0.01" value="<%= student.cpi %>" placeholder="Enter CPI"> </td>
+            <td> <input name="cpi" type="number" min="0" max="100" step="0.01" value="<%= student.cpi %>" placeholder="Enter CPI"> </td>
           </tr>
           <tr>
             <td>Active Backlogs</td>
             <td>:</td>
-            <td> <input  name="activeBacklog" type="number" value="<%= student.activeBacklog %>" placeholder="Enter Current Backlogs"> </td>
+            <td> <input min="0" name="activeBacklog" id="activeBacklog" type="number" value="<%= student.activeBacklog %>" placeholder="Enter Current Backlogs"> </td>
           </tr>
           <tr>
             <td>Total Backlogs</td>
             <td>:</td>
-            <td> <input name="totalBacklog" type="number" value="<%= student.totalBacklog %>" placeholder="Enter Total Backlogs"> </td>
+            <td> <input min="0" name="totalBacklog" id="totalBacklog" type="number" value="<%= student.totalBacklog %>" placeholder="Enter Total Backlogs"> </td>
           </tr>
           <tr>
             <td>Branch</td>
             <td>:</td>
             <td> 
-              <!-- <input name="branch" type="text" value="<%= student.branch %>" placeholder="Enter Total Backlogs">  -->
                         <select name="branch" id="role">
                             <option <% if(student.branch === "B.Tech") { %>
                               selected
@@ -172,6 +186,24 @@
   <script src="/js/popper.js"></script>
   <script src="/js/main.js"></script>
   <script src="/js/bootstrap.min.js"></script>
+  <script>
+    function checkForm()
+    {
+      var active=document.getElementById("activeBacklog").value;
+      var total=document.getElementById("totalBacklog").value;
+
+      console.log(parseInt(active), parseInt(total));
+      
+      if(parseInt(active) <= parseInt(total))
+      {
+        return true;
+      }
+      else{
+        alert("Active backlog cannot be greater than total backlog.");
+        return false;
+      }
+    }
+  </script>
 </body>
 
 </html>
