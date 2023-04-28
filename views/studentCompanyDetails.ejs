@@ -205,9 +205,23 @@
                                                 <% }%>
                                             <% } %>
                                             <% if(flag) {%>
+                                                
+                                                <% if( curDate.getTime() < date1.getTime()) {%>
+
                                                 <a class="disabled">
                                                     <button style="background: orange;width: 120px;" type="button" disabled class="btn btn-primary">Not Started</button>
                                                 </a>
+                                                
+                                                <% } else { %>
+
+                                                    
+                                                <a class="disabled">
+                                                    <button style="background: orange;width: 120px;" type="button" disabled class="btn btn-primary">Ended</button>
+                                                </a>
+
+                                                <% } %>
+
+
                                             <% }else{%>
                                                 <a class="disabled">
                                                     <button style="background: orange;width: 120px;" type="button" disabled class="btn btn-primary">Branch</button>
@@ -216,7 +230,7 @@
                                         <% } %>
                                     <% } else { %>
                                         <a class="disabled">
-                                            <button style="background: rgb(133, 178, 133);width: 120px;" type="button" disabled class="btn btn-primary">CPI</button>
+                                            <button style="background: orange; width: 120px;" type="button" disabled class="btn btn-primary">CPI</button>
                                         </a>
                                     <% } %>
                                 <% } %>

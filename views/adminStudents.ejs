@@ -123,6 +123,20 @@
 
                                 <table class="table table-hover">
                                     <tr>
+                                        <td>Email</td>
+                                        <td>:</td>
+                                        <td>
+                                            <%= students[i].student.email %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>DOB</td>
+                                        <td>:</td>
+                                        <td>
+                                            <%= new Date(students[i].student.dob).toDateString() %>
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <td>Gender</td>
                                         <td>:</td>
                                         <td>
