@@ -1793,8 +1793,7 @@ exports.adminUpdateInterviewSchedule = async (req, res) =>
     job.findByIdAndUpdate(id, { startDate: sd, endDate: ed }, { useFindAndModify: false })
         .then(async (data) =>
         {
-            // res.redirect(`/mail/${id}`);
-            res.redirect('/profile');
+            res.redirect(`/mail/${id}`);
         })
         .catch((err) =>
         {
