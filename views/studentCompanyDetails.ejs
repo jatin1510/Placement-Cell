@@ -174,6 +174,7 @@
                                         </a>
                                     <% } %>
                                 <% } else { %>
+
                                     <% if(user.cpi >= jobs[i].cpiCriteria) { %>
                                         <% const curDate = new Date() %>
 
@@ -204,21 +205,32 @@
                                                     <% flag = true; %>
                                                 <% }%>
                                             <% } %>
+
+                                            <% const curDate = new Date() %>
+                                            
+                                            <% const date1 = new Date(jobs[i].startDate.getTime() + jobs[i].startDate.getTimezoneOffset() * 60000) %>
+
+                                            <% const date2 = new Date(jobs[i].endDate.getTime() + jobs[i].endDate.getTimezoneOffset() * 60000) %>
+                                            
                                             <% if(flag) {%>
-                                                
-                                                <% if( curDate.getTime() < date1.getTime()) {%>
+                                                <% if( date1.getTime() == date2.getTime()) {%>
 
                                                 <a class="disabled">
-                                                    <button style="background: orange;width: 120px;" type="button" disabled class="btn btn-primary">Not Started</button>
+                                                    <button style="background: orange;width: 120px;" type="button" disabled class="btn btn-primary">Not scheduled</button>
                                                 </a>
                                                 
-                                                <% } else { %>
+                                                <% } else if(curDate.getTime() < date1.getTime()) { %>
 
                                                     
                                                 <a class="disabled">
-                                                    <button style="background: orange;width: 120px;" type="button" disabled class="btn btn-primary">Ended</button>
+                                                    <button style="background: green;width: 120px;" type="button" disabled class="btn btn-primary">Not started</button>
                                                 </a>
 
+                                                <% } else {%>
+
+                                                    <a class="disabled">
+                                                        <button style="background: orange;width: 120px;" type="button" disabled class="btn btn-primary">Ended</button>
+                                                    </a>
                                                 <% } %>
 
 
