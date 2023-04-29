@@ -1859,32 +1859,54 @@ exports.hireStudent = async (req, res) =>
         job: req.params.jobId,
         student: req.params.studentId,
     });
-
-    // student schema isPlaced = true;
-    await student.findByIdAndUpdate(req.params.studentId, { isPlaced: true }, { useFindAndModify: false });
-
-    // save studentPlaced schema
-    await user
-        .save(user)
-        .then((data) =>
+    console.log(req.params.studentId);
+    await student.findByIdAndUpdate(req.params.studentId, { isPlaced: true }, { useFindAndModify: false })
+        .then(async (data) =>
         {
-            res.redirect(`/registredStudentsInJob/${req.params.jobId}`);
+            if (!data) {
+                res.status(500).render('error', { message: 'Student not found' });
+                return;
+            }
+            await user
+                .save(user)
+                .then((data) =>
+                {
+                    console.log("saved");
+                    res.redirect(`/registredStudentsInJob/${req.params.jobId}`);
+                })
+                .catch((err) =>
+                {
+                    res.status(500).render('error', { message: err });
+                });
         })
         .catch((err) =>
         {
-            res.status(500).render('error', { message: 'Student is already placed' });
+            res.status(500).render('error', { message: 'Student not found' });
         });
-
-    const jobID = req.params.jobId;
 };
 
 exports.unhireStudent = async (req, res) =>
 {
-
-    await studentPlaced.findOneAndDelete({ job: req.params.jobId, student: req.params.studentId });
-    // student schema isPlaced = true;
-    await student.findByIdAndUpdate(req.params.studentId, { isPlaced: false }, { useFindAndModify: false });
-
-    // save studentPlaced schema
-    res.redirect(`/registredStudentsInJob/${req.params.jobId}`);
+    await studentPlaced.findOneAndDelete({ job: req.params.jobId, student: req.params.studentId })
+        .then(async (data) =>
+        {
+            if(!data)
+            {
+                res.status(500).render('error', { message: `Student not registered in job ${req.params.jobId}` });
+                return;
+            }
+            await student.findByIdAndUpdate(req.params.studentId, { isPlaced: false }, { useFindAndModify: false })
+                .then((data) =>
+                {
+                    res.redirect(`/registredStudentsInJob/${req.params.jobId}`);
+                })
+                .catch((err) =>
+                {
+                    res.status(500).render('error', { message: 'Student not found' });
+                });
+        })
+        .catch((err) =>
+        {
+            res.status(500).render('error', { message: 'Student not found' });
+        });
 };
